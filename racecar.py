@@ -3,20 +3,21 @@ import copy
 import math
 
 import numpy as np
-import pybullet as p
+import pybullet as pb
 import pybullet_data
+from pybullet_utils import bullet_client
 
 class Racecar:
 
-  def __init__(self, bullet_client, urdfRootPath='', timeStep=0.01):
+  def __init__(self, bullet_client, urdfRootPath='', timeStep = 0.01, startPos = [0, 0, .2]):
     self.urdfRootPath = urdfRootPath
     self.timeStep = timeStep
     self._p = bullet_client
-    self.reset()
+    self.reset(startPos)
 
-  def reset(self):
+  def reset(self, startPos = [0, 0, .2]):
     car = self._p.loadURDF(os.path.join(self.urdfRootPath, "racecar/racecar_differential.urdf"),
-                           [0, 0, .2],
+                           startPos,
                            useFixedBase=False)
     self.racecarUniqueId = car
 
@@ -148,7 +149,7 @@ class Racecar:
                                     targetPosition=steeringAngle)
 
 if __name__ == '__main__':
-  p.connect(p.GUI)
+  p = bullet_client.BulletClient(pb.GUI)
   p.setAdditionalSearchPath(pybullet_data.getDataPath())
   planID = p.loadURDF('plane.urdf')
   p.setGravity(0,0,-10)
