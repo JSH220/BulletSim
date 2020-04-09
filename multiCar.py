@@ -11,12 +11,11 @@ import pybullet_data
 car_num = 3
 additional_path = pybullet_data.getDataPath()
 
-def runSim(bClients, carsList):
+def runSim(carsList):
     while True:
-        for client in bClients:
-            client.stepSimulation()
-        # for car in carsList:
-        #     print(car.pos)
+        for car in carsList:
+            car.stepSim()
+            print(car.pos)
 
 def main():
     planes_id = []
@@ -31,8 +30,8 @@ def main():
         planes_id.append(clients[-1].loadURDF('plane.urdf'))
         clients[-1].setGravity(0,0,-10)
         cars.append(Racecar(clients[-1], additional_path, startPos = pos))
-        cars[-1].applyAction([0.3 * i + 0.3, 0.8])
-    runSim(clients, cars)
+        cars[-1].applyAction([0.2 * i + 0.5, 0.8])
+    runSim(cars)
 
 
 if __name__ == '__main__':
