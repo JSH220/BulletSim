@@ -1,9 +1,11 @@
+#!/home/jshgod/anaconda3/bin/python
+#-*-coding:utf-8-*-
 import os
 import copy
 import math
 
 import numpy as np
-
+from batchRay import batchRay
 
 class Racecar:
 
@@ -28,6 +30,8 @@ class Racecar:
     self.__steeringLinks = [0, 2]
     self.__nMotors = 2
     self.__motorizedwheels = [8, 15]
+    self.__rayPos = [self.__pos[0], self.__pos[1], 0.3]
+    self.__rays = batchRay(self.__p, self.__rayPos, 8, 512)
   
   @property
   def actionDimension(self):
@@ -183,19 +187,21 @@ class Racecar:
   def stepSim(self):
     self.__p.stepSimulation()
     self.__pos, self.__orient = self.__p.getBasePositionAndOrientation(self.__carId)
-
+    self.__rays.rayPos = [self.__pos[0], self.__pos[1], 0.3]
+    self.__rays.hitCheck()
+    # self.__rays.drawRays()
 
 if __name__ == '__main__':
   import pybullet as pb
   import pybullet_data
-  from bullet_client import BulletClient
+  from bClient import BulletClient
 
   p = BulletClient(pb.GUI)
   p.setAdditionalSearchPath(pybullet_data.getDataPath())
   planID = p.loadURDF('plane.urdf')
   p.setGravity(0,0,-10)
   car = Racecar(p, pybullet_data.getDataPath())
-  car.applyAction([0.1, 0.5])
+  car.applyAction([0.7, 0.5])
   i = 0
   while True:
     i += 1
@@ -208,7 +214,7 @@ if __name__ == '__main__':
     print("steeringMultiplier: ", car.steeringMultiplier)
     car.maxForce = 20
     # car.maxForce = 150
-    car.speedMultiplier = 30.
+    car.speedMultiplier = 80.
     # car.speedMultiplier = -50
     car.steeringMultiplier = 1.
     # car.steeringMultiplier = 3.

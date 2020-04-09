@@ -5,20 +5,20 @@ import random
 from multiprocessing import Pool
 from racecar import Racecar
 import pybullet as pb
-from bullet_client import BulletClient
+from bClient import BulletClient
 import pybullet_data
 
-car_num = 3
+car_num = 2
 additional_path = pybullet_data.getDataPath()
 
 def runSim(carsList):
     while True:
+        # carsList[0].stepSim()
         for car in carsList:
             car.stepSim()
             # print(car.pos)
 
 def main():
-    planes_id = []
     clients = []
     cars = []
     pos_step = 2.5
@@ -29,14 +29,14 @@ def main():
 
     guiServer.setAdditionalSearchPath(additional_path)
     guiServer.loadURDF('plane.urdf')
+    guiServer.loadURDF('r2d2.urdf', [1, 0, 0])
     for i in range(car_num):
         pos = [0, (i - car_num / 2) * pos_step, .2]
         clients.append(BulletClient(pb.SHARED_MEMORY))
         clients[-1].setAdditionalSearchPath(additional_path)
-        # planes_id.append(clients[-1].loadURDF('plane.urdf'))
         clients[-1].setGravity(0,0,-10)
         cars.append(Racecar(clients[-1], additional_path, startPos = pos))
-        cars[-1].applyAction([0.1 * i + 0.2, 0.8])
+        cars[-1].applyAction([0.1 * i + 1.0, 0.8])
         print(i,"th car is ready...")
     guiServer.configureDebugVisualizer(pb.COV_ENABLE_RENDERING, 1)
     runSim(cars)
