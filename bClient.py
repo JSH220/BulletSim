@@ -1,5 +1,3 @@
-#!/home/jshgod/anaconda3/bin/python
-#-*-coding:utf-8-*-
 import functools
 import inspect
 import pybullet

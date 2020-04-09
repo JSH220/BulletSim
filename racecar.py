@@ -1,5 +1,4 @@
-#!/home/jshgod/anaconda3/bin/python
-#-*-coding:utf-8-*-
+
 import os
 import copy
 import math

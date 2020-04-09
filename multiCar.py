@@ -1,10 +1,12 @@
-#!/home/jshgod/anaconda3/bin/python
-#-*-coding:utf-8-*-
+
 import time
-from racecar import Racecar
+
 import pybullet as pb
-from bClient import BulletClient
 import pybullet_data
+
+from racecar import Racecar
+from bClient import BulletClient
+
 
 drawRays = True
 car_num = 1
