@@ -184,12 +184,13 @@ class Racecar:
     self.__p.stepSimulation()
     self.__pos, self.__orient = self.__p.getBasePositionAndOrientation(self.__carId)
 
+
 if __name__ == '__main__':
   import pybullet as pb
   import pybullet_data
-  from pybullet_utils import bullet_client
+  from bullet_client import BulletClient
 
-  p = bullet_client.BulletClient(pb.GUI)
+  p = BulletClient(pb.GUI)
   p.setAdditionalSearchPath(pybullet_data.getDataPath())
   planID = p.loadURDF('plane.urdf')
   p.setGravity(0,0,-10)
