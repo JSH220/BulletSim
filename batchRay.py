@@ -26,6 +26,7 @@ class batchRay(object):
                 for i in range(self.__rayNum)
             ]
         self.__results = []
+        
     @property
     def rayPos(self):
         return self.__rayPos

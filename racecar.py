@@ -184,12 +184,16 @@ class Racecar:
                                     steer,
                                     self.__p.POSITION_CONTROL,
                                     targetPosition=steeringAngle)
-  def stepSim(self):
+  
+  def stepSim(self, drawRays):
+    assert isinstance(drawRays, bool), \
+      "drawRays should be boolen type"
     self.__p.stepSimulation()
     self.__pos, self.__orient = self.__p.getBasePositionAndOrientation(self.__carId)
     self.__rays.rayPos = [self.__pos[0], self.__pos[1], 0.3]
     self.__rays.hitCheck()
-    # self.__rays.drawRays()
+    if drawRays:
+      self.__rays.drawRays()
 
 if __name__ == '__main__':
   import pybullet as pb
@@ -205,7 +209,7 @@ if __name__ == '__main__':
   i = 0
   while True:
     i += 1
-    car.stepSim()
+    car.stepSim(True)
     print("actionDimension: ", car.maxForce)
     print("pos: ", car.pos)
     print("orient: ", car.orient)
