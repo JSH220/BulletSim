@@ -8,7 +8,7 @@ import pybullet as pb
 from pybullet_utils import bullet_client
 import pybullet_data
 
-car_num = 5
+car_num = 3
 additional_path = pybullet_data.getDataPath()
 
 def runSim(bClients):
@@ -17,14 +17,14 @@ def runSim(bClients):
             client.stepSimulation()
 
 def main():
-    clients = []
-    plain_id = []
+    # clients = []
+    # plain_id = []
     cars = []
     # p = Pool(car_num)
     pb.connect(pb.GUI)
     pb.setAdditionalSearchPath(additional_path)
     pb.setGravity(0,0,-10)
-    pos_step = 1
+    pos_step = 3
     plain_id = pb.loadURDF('plane.urdf')
     
     for i in range(car_num):
@@ -33,7 +33,7 @@ def main():
         # clients[-1].setAdditionalSearchPath(additional_path)
         # clients[-1].setGravity(0,0,-10)
         cars.append(Racecar(pb, additional_path, startPos = pos))
-        cars[-1].applyAction([0.1, 0.5])
+        cars[-1].applyAction([0.3 * i + 0.3, 0.8])
     # runSim(clients)
     while True:
         pb.stepSimulation()
