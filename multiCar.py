@@ -11,35 +11,32 @@ import pybullet_data
 car_num = 3
 additional_path = pybullet_data.getDataPath()
 
-def runSim(bClients):
+def runSim(bClients, carsList):
     while True:
         for client in bClients:
             client.stepSimulation()
+        # for car in carsList:
+        #     print(car.pos)
 
 def main():
-    # clients = []
-    # plain_id = []
+    planes_id = []
+    clients = []
     cars = []
-    # p = Pool(car_num)
-    pb.connect(pb.GUI)
-    pb.setAdditionalSearchPath(additional_path)
-    pb.setGravity(0,0,-10)
-    pos_step = 3
-    plain_id = pb.loadURDF('plane.urdf')
-    
+    pos_step = 2.5
+    guiServer = bullet_client.BulletClient(pb.GUI_SERVER)
     for i in range(car_num):
         pos = [0, (i - car_num / 2) * pos_step, .2]
-        # clients.append(bullet_client.BulletClient(pb.SHARED_MEMORY_GUI))
-        # clients[-1].setAdditionalSearchPath(additional_path)
-        # clients[-1].setGravity(0,0,-10)
-        cars.append(Racecar(pb, additional_path, startPos = pos))
+        clients.append(bullet_client.BulletClient(pb.SHARED_MEMORY))
+        clients[-1].setAdditionalSearchPath(additional_path)
+        planes_id.append(clients[-1].loadURDF('plane.urdf'))
+        clients[-1].setGravity(0,0,-10)
+        cars.append(Racecar(clients[-1], additional_path, startPos = pos))
         cars[-1].applyAction([0.3 * i + 0.3, 0.8])
-    # runSim(clients)
-    while True:
-        pb.stepSimulation()
-        # p.apply_async(runSim, args = (clients[-1],))
-    # p.close()
-    # p.join()
+    runSim(clients, cars)
+
 
 if __name__ == '__main__':
     main()
+
+
+
