@@ -1,4 +1,3 @@
-
 import math
 
 class batchRay(object):
@@ -47,10 +46,12 @@ class batchRay(object):
     def hitCheck(self):
         self.__results = self.__pbClient.rayTestBatch(self.__rayFrom, self.__rayTo)
 
-    def drawRays(self):
+    def drawRays(self, drawStep):
+        assert isinstance(drawStep, int), \
+            "drawStep should be int type..."
         self.__pbClient.removeAllUserDebugItems()
         startPos = [self.__rayPos[0], self.__rayPos[1], 0]
-        for i in range(self.__rayNum):
+        for i in filter(lambda x : not bool(x % drawStep), range(self.__rayNum)):
             hitObjectUid = self.__results[i][0]
             if (hitObjectUid < 0):
                 hitPosition = [0, 0, 0]
@@ -75,7 +76,7 @@ if __name__ == "__main__":
     while True:
         p.stepSimulation()
         rays.hitCheck()
-        rays.drawRays()
+        rays.drawRays(5)
         pos[0] = pos[0] + 0.01
         rays.rayPos = pos
         # time.sleep(0.01)
