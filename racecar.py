@@ -1,17 +1,21 @@
-
 import os
 import copy
 import math
+from threading import Lock
 
 import numpy as np
-from batchRay import batchRay
+from batchRay import BatchRay
 
 class Racecar:
+
+  __rayHitPos = []
+  __rayHitPosMaxNum = 1024
 
   def __init__(self, bullet_client, urdfRootPath='', timeStep = 0.01, startPos = [0, 0, .2], startOri = [0, 0, 0]):
     self.__urdfRootPath = urdfRootPath
     self.__timeStep = timeStep
     self.__p = bullet_client
+    self.__lock = Lock()
     self.__carId = 0
     self.__reset(startPos)
     self.__pos = startPos
@@ -29,9 +33,9 @@ class Racecar:
     self.__steeringLinks = [0, 2]
     self.__nMotors = 2
     self.__motorizedwheels = [8, 15]
-    self.__rayPos = [self.__pos[0], self.__pos[1], 0.3]
-    self.__rays = batchRay(self.__p, self.__rayPos, 8, 512)
-  
+    self.__sensor_pos = [self.__pos[0], self.__pos[1], 0.3]
+    self.__rays = BatchRay(self.__p, self.__sensor_pos, 8, 512)
+
   @property
   def actionDimension(self):
     return self.__nMotors
@@ -47,38 +51,46 @@ class Racecar:
   @property
   def maxForce(self):
     return self.__maxForce
-  
+
   @maxForce.setter
   def maxForce(self, mf):
     assert mf > 0 and mf < self.__maxForceUpperbound, \
       'maxForce should between 0 and ' + str(self.__maxForceUpperbound)
     self.__maxForce = mf
-  
+
   @property
   def speedMultiplier(self):
     return self.__speedMultiplier
-  
+
   @speedMultiplier.setter
   def speedMultiplier(self, sm):
     assert sm > 0 and sm < self.__speedMultiplierUpperbound, \
       'speedMultiplier should between 0 and ' + str(self.__speedMultiplierUpperbound)
     self.__speedMultiplier = sm
-  
+
   @property
   def steeringMultiplier(self):
     return self.__steeringMultiplier
-  
+
   @steeringMultiplier.setter
   def steeringMultiplier(self, stm):
     assert stm > 0 and stm < self.__steeringMultiplierUpperbound, \
-       'steeringMultiplier should between 0 and ' + str(self.__steeringMultiplierUpperbound)
+      'steeringMultiplier should between 0 and ' + str(self.__steeringMultiplierUpperbound)
     self.__steeringMultiplier = stm
+
+  @classmethod
+  def getAllRayHitPos(cls):
+    return cls.__rayHitPos
+
+  @classmethod
+  def resetRayHitPos(cls):
+    cls.__rayHitPos = []
 
   def __reset(self, pos = [0, 0, .2]):
     car = self.__p.loadURDF(os.path.join(self.__urdfRootPath, "racecar/racecar_differential.urdf"),
-                           pos,
-                           self.__p.getQuaternionFromEuler([0, 0, 0]),
-                           useFixedBase=False)
+                          pos,
+                          self.__p.getQuaternionFromEuler([0, 0, 0]),
+                          useFixedBase=False)
     self.__carId = car
 
     for wheel in range(self.__p.getNumJoints(car)):
@@ -90,82 +102,82 @@ class Racecar:
       self.__p.getJointInfo(car, wheel)
 
     c = self.__p.createConstraint(car,
-                                 9,
-                                 car,
-                                 11,
-                                 jointType=self.__p.JOINT_GEAR,
-                                 jointAxis=[0, 1, 0],
-                                 parentFramePosition=[0, 0, 0],
-                                 childFramePosition=[0, 0, 0])
+                                9,
+                                car,
+                                11,
+                                jointType=self.__p.JOINT_GEAR,
+                                jointAxis=[0, 1, 0],
+                                parentFramePosition=[0, 0, 0],
+                                childFramePosition=[0, 0, 0])
     self.__p.changeConstraint(c, gearRatio=1, maxForce=10000)
 
     c = self.__p.createConstraint(car,
-                                 10,
-                                 car,
-                                 13,
-                                 jointType=self.__p.JOINT_GEAR,
-                                 jointAxis=[0, 1, 0],
-                                 parentFramePosition=[0, 0, 0],
-                                 childFramePosition=[0, 0, 0])
+                                10,
+                                car,
+                                13,
+                                jointType=self.__p.JOINT_GEAR,
+                                jointAxis=[0, 1, 0],
+                                parentFramePosition=[0, 0, 0],
+                                childFramePosition=[0, 0, 0])
     self.__p.changeConstraint(c, gearRatio=-1, maxForce=10000)
 
     c = self.__p.createConstraint(car,
-                                 9,
-                                 car,
-                                 13,
-                                 jointType=self.__p.JOINT_GEAR,
-                                 jointAxis=[0, 1, 0],
-                                 parentFramePosition=[0, 0, 0],
-                                 childFramePosition=[0, 0, 0])
+                                9,
+                                car,
+                                13,
+                                jointType=self.__p.JOINT_GEAR,
+                                jointAxis=[0, 1, 0],
+                                parentFramePosition=[0, 0, 0],
+                                childFramePosition=[0, 0, 0])
     self.__p.changeConstraint(c, gearRatio=-1, maxForce=10000)
 
     c = self.__p.createConstraint(car,
-                                 16,
-                                 car,
-                                 18,
-                                 jointType=self.__p.JOINT_GEAR,
-                                 jointAxis=[0, 1, 0],
-                                 parentFramePosition=[0, 0, 0],
-                                 childFramePosition=[0, 0, 0])
+                                16,
+                                car,
+                                18,
+                                jointType=self.__p.JOINT_GEAR,
+                                jointAxis=[0, 1, 0],
+                                parentFramePosition=[0, 0, 0],
+                                childFramePosition=[0, 0, 0])
     self.__p.changeConstraint(c, gearRatio=1, maxForce=10000)
 
     c = self.__p.createConstraint(car,
-                                 16,
-                                 car,
-                                 19,
-                                 jointType=self.__p.JOINT_GEAR,
-                                 jointAxis=[0, 1, 0],
-                                 parentFramePosition=[0, 0, 0],
-                                 childFramePosition=[0, 0, 0])
+                                16,
+                                car,
+                                19,
+                                jointType=self.__p.JOINT_GEAR,
+                                jointAxis=[0, 1, 0],
+                                parentFramePosition=[0, 0, 0],
+                                childFramePosition=[0, 0, 0])
     self.__p.changeConstraint(c, gearRatio=-1, maxForce=10000)
 
     c = self.__p.createConstraint(car,
-                                 17,
-                                 car,
-                                 19,
-                                 jointType=self.__p.JOINT_GEAR,
-                                 jointAxis=[0, 1, 0],
-                                 parentFramePosition=[0, 0, 0],
-                                 childFramePosition=[0, 0, 0])
+                                17,
+                                car,
+                                19,
+                                jointType=self.__p.JOINT_GEAR,
+                                jointAxis=[0, 1, 0],
+                                parentFramePosition=[0, 0, 0],
+                                childFramePosition=[0, 0, 0])
     self.__p.changeConstraint(c, gearRatio=-1, maxForce=10000)
 
     c = self.__p.createConstraint(car,
-                                 1,
-                                 car,
-                                 18,
-                                 jointType=self.__p.JOINT_GEAR,
-                                 jointAxis=[0, 1, 0],
-                                 parentFramePosition=[0, 0, 0],
-                                 childFramePosition=[0, 0, 0])
+                                1,
+                                car,
+                                18,
+                                jointType=self.__p.JOINT_GEAR,
+                                jointAxis=[0, 1, 0],
+                                parentFramePosition=[0, 0, 0],
+                                childFramePosition=[0, 0, 0])
     self.__p.changeConstraint(c, gearRatio=-1, gearAuxLink=15, maxForce=10000)
     c = self.__p.createConstraint(car,
-                                 3,
-                                 car,
-                                 19,
-                                 jointType=self.__p.JOINT_GEAR,
-                                 jointAxis=[0, 1, 0],
-                                 parentFramePosition=[0, 0, 0],
-                                 childFramePosition=[0, 0, 0])
+                                3,
+                                car,
+                                19,
+                                jointType=self.__p.JOINT_GEAR,
+                                jointAxis=[0, 1, 0],
+                                parentFramePosition=[0, 0, 0],
+                                childFramePosition=[0, 0, 0])
     self.__p.changeConstraint(c, gearRatio=-1, gearAuxLink=15, maxForce=10000)
 
   def applyAction(self, motorCommands):
@@ -183,17 +195,25 @@ class Racecar:
                                     steer,
                                     self.__p.POSITION_CONTROL,
                                     targetPosition=steeringAngle)
-  
-  def stepSim(self, drawRays = True, drawStep = 5):
+
+  def stepSim(self, drawRays = False, drawStep = 5, robotId = 0):
     assert isinstance(drawRays, bool), \
       "drawRays should be boolen type"
     self.__p.stepSimulation()
     self.__pos, self.__orient = self.__p.getBasePositionAndOrientation(self.__carId)
     self.__rays.rayPos = [self.__pos[0], self.__pos[1], 0.3]
-    self.__rays.hitCheck()
-    if drawRays:
-      self.__rays.drawRays(drawStep)
+    self.__rays.scan_env()
 
+    self.__lock.acquire()
+    try:
+      Racecar.__rayHitPos = Racecar.__rayHitPos + self.__rays.hit_pos \
+        if len(Racecar.__rayHitPos) < Racecar.__rayHitPosMaxNum else Racecar.__rayHitPos
+      # don't support multi-robot until now
+      if drawRays:
+        self.__rays.draw_debug(drawStep)
+    finally:
+      self.__lock.release()
+  
 if __name__ == '__main__':
   import pybullet as pb
   import pybullet_data

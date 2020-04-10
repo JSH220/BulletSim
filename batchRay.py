@@ -1,64 +1,77 @@
 import math
+from sensorI import SensorI
 
-class batchRay(object):
-    def __init__(self, pybulletClient, rayPos = [0, 0, 0], rayLen = 13, rayNum = 1024):
-        self.__pbClient = pybulletClient
-        self.__rayPos = rayPos
-        self.__rayLen = rayLen
+class BatchRay(SensorI):
+    def __init__(self, pybullet_client, sensor_pos = [0, 0, 0], ray_len = 13, ray_num = 1024):
         
-        assert rayNum < self.__pbClient.MAX_RAY_INTERSECTION_BATCH_SIZE, \
-            "There are too many rays, which should be less than " + str(self.__pbClient.MAX_RAY_INTERSECTION_BATCH_SIZE)
-        self.__rayNum = rayNum
+        self.__pb_client = pybullet_client
 
-        self.__rayHitColor = [1, 0, 0]
-        self.__rayMissColor = [0, 1, 0]
+        assert ray_num < self.__pb_client.MAX_RAY_INTERSECTION_BATCH_SIZE, \
+            "There are too many rays, which should be less than " + str(self.__pb_client.MAX_RAY_INTERSECTION_BATCH_SIZE)
+        assert isinstance(sensor_pos, (tuple, list)), \
+            "sensor_pos should be tuple or list..."
+        assert len(sensor_pos) == 3, \
+            "sensor_pos should be 3 dimension..."
+        
+        self.__sensor_pos = tuple(sensor_pos) # make sure sensor_pos is passed by value
+        self.__ray_len = ray_len
+        
+        self.__ray_num = ray_num
 
-        self.__rayFrom = [self.__rayPos for i in range(self.__rayNum)]
-        self.__rayTo = [
+        self.__ray_hit_color = [1, 0, 0]
+        self.__ray_miss_color = [0, 1, 0]
+
+        self.__ray_from = [self.__sensor_pos for i in range(self.__ray_num)]
+        self.__ray_to = [
                 [
-                    self.__rayPos[0] + self.__rayLen * math.sin(2. * math.pi * float(i) / self.__rayNum), 
-                    self.__rayPos[1] + self.__rayLen * math.cos(2. * math.pi * float(i) / self.__rayNum), 
-                    self.__rayPos[2]
+                    self.__sensor_pos[0] + self.__ray_len * math.sin(2. * math.pi * float(i) / self.__ray_num), 
+                    self.__sensor_pos[1] + self.__ray_len * math.cos(2. * math.pi * float(i) / self.__ray_num), 
+                    self.__sensor_pos[2]
                 ]
-                for i in range(self.__rayNum)
+                for i in range(self.__ray_num)
             ]
         self.__results = []
+        self.__hit_pos = []
 
     @property
-    def rayPos(self):
-        return self.__rayPos
+    def hit_pos(self):
+        return self.__hit_pos
 
-    @rayPos.setter
-    def rayPos(self, pos):
-        assert isinstance(pos, list), \
-            "...... Position should be a list ......"
+    def get_sensor_pos(self):
+        return self.__sensor_pos
+
+    def set_sensor_pos(self, pos):
+        assert isinstance(pos, (list, tuple)), \
+            "...... Position should be a list or tuple ......"
         assert len(pos) == 3, \
             "...... Position should be 3 dimension ......"
-        self.__rayPos = pos
-        for i in range(self.__rayNum):
-            self.__rayFrom[i] = self.__rayPos
-            self.__rayTo[i] = [
-                    self.__rayPos[0] + self.__rayLen * math.sin(2. * math.pi * float(i) / self.__rayNum), 
-                    self.__rayPos[1] + self.__rayLen * math.cos(2. * math.pi * float(i) / self.__rayNum), 
-                    self.__rayPos[2]
+        self.__sensor_pos = tuple(pos)
+        for i in range(self.__ray_num):
+            self.__ray_from[i] = self.__sensor_pos
+            self.__ray_to[i] = [
+                    self.__sensor_pos[0] + self.__ray_len * math.sin(2. * math.pi * float(i) / self.__ray_num), 
+                    self.__sensor_pos[1] + self.__ray_len * math.cos(2. * math.pi * float(i) / self.__ray_num), 
+                    self.__sensor_pos[2]
                 ]
 
-    def hitCheck(self):
-        self.__results = self.__pbClient.rayTestBatch(self.__rayFrom, self.__rayTo)
+    def scan_env(self):
+        self.__results = self.__pb_client.rayTestBatch(self.__ray_from, self.__ray_to)
+        self.__hit_pos = [r[3] for r in self.__results if r[0] >= 0]
 
-    def drawRays(self, drawStep):
+    # don't support multi-robot until now
+    def draw_debug(self, drawStep):
         assert isinstance(drawStep, int), \
             "drawStep should be int type..."
-        self.__pbClient.removeAllUserDebugItems()
-        startPos = [self.__rayPos[0], self.__rayPos[1], 0]
-        for i in filter(lambda x : not bool(x % drawStep), range(self.__rayNum)):
-            hitObjectUid = self.__results[i][0]
-            if (hitObjectUid < 0):
-                hitPosition = [0, 0, 0]
-                self.__pbClient.addUserDebugLine(startPos, self.__rayTo[i], self.__rayMissColor)
+        self.__pb_client.removeAllUserDebugItems()
+        startPos = [self.__sensor_pos[0], self.__sensor_pos[1], 0]
+        for i in filter(lambda x : not bool(x % drawStep), range(self.__ray_num)):
+            hit_object_uid = self.__results[i][0]
+            if (hit_object_uid < 0):
+                hit_position = [0, 0, 0]
+                self.__pb_client.addUserDebugLine(startPos, self.__ray_to[i], self.__ray_miss_color)
             else:
-                hitPosition = self.__results[i][3]
-                self.__pbClient.addUserDebugLine(startPos, hitPosition, self.__rayHitColor)
+                hit_position = self.__results[i][3]
+                self.__pb_client.addUserDebugLine(startPos, hit_position, self.__ray_hit_color)
 
 
 if __name__ == "__main__":
@@ -71,13 +84,13 @@ if __name__ == "__main__":
     p.loadURDF("r2d2.urdf", [3, 3, 1])
     
     pos = [0, 0, 0]
-    rays = batchRay(p, rayPos = pos, rayLen = 8)
+    rays = BatchRay(p, sensor_pos = pos, ray_len = 8)
     
     while True:
         p.stepSimulation()
-        rays.hitCheck()
-        rays.drawRays(5)
+        rays.scan_env()
+        rays.draw_debug(5)
         pos[0] = pos[0] + 0.01
-        rays.rayPos = pos
+        rays.set_sensor_pos(pos)
         # time.sleep(0.01)
 
