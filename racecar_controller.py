@@ -82,14 +82,6 @@ class RacecarController(Racecar):
       'steeringMultiplier should between 0 and ' + str(self._steeringMultiplierUpperbound)
     self._steeringMultiplier = stm
 
-  @classmethod
-  def getAllRayHitPos(cls):
-    return cls._rayHitPos
-
-  @classmethod
-  def resetRayHitPos(cls):
-    cls._rayHitPos = []
-
   def stepSim(self, drawRays = False, drawStep = 5, robotId = 0):
     assert isinstance(drawRays, bool), \
       "drawRays should be boolen type"
@@ -120,7 +112,7 @@ class RacecarController(Racecar):
 if __name__ == '__main__':
   import pybullet as pb
   import pybullet_data
-  from bClient import BulletClient
+  from bullet_client import BulletClient
 
   p = BulletClient(pb.GUI)
   p.setAdditionalSearchPath(pybullet_data.getDataPath())

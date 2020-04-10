@@ -113,7 +113,7 @@ class Racecar(object):
 if __name__ == '__main__':
   import pybullet as pb
   import pybullet_data
-  from bClient import BulletClient
+  from bullet_client import BulletClient
 
   p = BulletClient(pb.GUI)
   p.setAdditionalSearchPath(pybullet_data.getDataPath())
