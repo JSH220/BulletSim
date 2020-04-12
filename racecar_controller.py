@@ -92,6 +92,7 @@ class RacecarController(Racecar):
     # don't support multi-robot until now
     if drawRays:
         self._rays.draw_debug(drawStep)
+        
   def apply_action(self, motorCommands):
       targetVelocity = motorCommands[0] * self._speedMultiplier
       steeringAngle = motorCommands[1] * self._steeringMultiplier
