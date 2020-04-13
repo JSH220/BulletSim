@@ -6,30 +6,33 @@ import pybullet_data
 
 from racecar_controller import RacecarController
 from bullet_client import BulletClient
+from mouse_events import MouseEvents
 
 draw_ray = False  #support only one robot to draw rays
 draw_ray_step = 3
 
 car_num = 5
-sim_step = 1 / 50
+sim_step = 1. / 500.
+display_step = 1. / 50
 pos_step = 2.5
 
+# mouse_event = MouseEvents(pb)
 additional_path = pybullet_data.getDataPath()
 
 def multiThreadSimStep(car, i):
     while True:
         car.stepSim(draw_ray, draw_ray_step)
-        time.sleep(sim_step)
-
+        time.sleep(display_step)
 
 def main():
     clients = []
     cars = []
     thrs = []
-
+    
     guiServer = BulletClient(pb.GUI_SERVER)
     guiServer.setPhysicsEngineParameter(numSolverIterations = 8, minimumSolverIslandSize = 100)
     guiServer.configureDebugVisualizer(pb.COV_ENABLE_RENDERING, 0)
+    # guiServer.configureDebugVisualizer(pb.COV_ENABLE_MOUSE_PICKING, 1)
 
     guiServer.setAdditionalSearchPath(additional_path)
     guiServer.loadURDF('plane.urdf')
@@ -45,7 +48,10 @@ def main():
         thrs[-1].start()
         print(i,"th car is ready...")
     guiServer.configureDebugVisualizer(pb.COV_ENABLE_RENDERING, 1)
-    
+    while True:
+        guiServer.stepSimulation()
+        time.sleep(sim_step)
+
     for t in thrs:
         t.join()
     

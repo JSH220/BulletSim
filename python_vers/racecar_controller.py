@@ -85,7 +85,6 @@ class RacecarController(Racecar):
   def stepSim(self, drawRays = False, drawStep = 5, robotId = 0):
     assert isinstance(drawRays, bool), \
       "drawRays should be boolen type"
-    self._p.stepSimulation()
     self._pos, self._orient = self._p.getBasePositionAndOrientation(self._carId)
     self._rays.rayPos = [self._pos[0], self._pos[1], 0.3]
     self._rays.scan_env()
