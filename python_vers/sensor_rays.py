@@ -2,7 +2,7 @@ import math
 from sensor_interface import SensorI
 
 class BatchRay(SensorI):
-    def __init__(self, pybullet_client, sensor_pos = [0, 0, 0], ray_len = 13, ray_num = 1024):
+    def __init__(self, pybullet_client, sensor_pos = [0, 0, 0], ray_len = 25, ray_num = 1024):
         
         self.__pb_client = pybullet_client
 
