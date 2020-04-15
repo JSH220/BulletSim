@@ -53,7 +53,7 @@ if __name__ == "__main__":
         for i in range(matrix[0]):
             offset=[offsetX,offsetY,0.5]
             #sim = client.loadURDF('racecar/racecar.urdf', offset)
-            sim = RacecarController(client, additional_path, offset, [0, 0, 0])
+            sim = RacecarController(client, additional_path,timeStep, offset, [0, 0, 0])
             robots.append(sim)
             offsetX += space 
         offsetY += space 
