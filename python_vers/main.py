@@ -52,25 +52,26 @@ if __name__ == "__main__":
         offsetX = 0
         for i in range(matrix[0]):
             offset=[offsetX,offsetY,0.5]
-            #sim = client.loadURDF('racecar/racecar.urdf', offset)
-            sim = RacecarController(client, additional_path, offset, [0, 0, 0])
-            robots.append(sim)
+            #robot = client.loadURDF('racecar/racecar.urdf', offset)
+            robot = RacecarController(client, additional_path, offset, [0, 0, 0])
+            robots.append(robot)
             offsetX += space 
         offsetY += space 
     
     client.configureDebugVisualizer(client.COV_ENABLE_RENDERING,1)
 
-    for i in range (2000):
+    for i in range (200):
         for robot in robots:
             if type(robot) == type(0):
                 break
             robot.apply_action([1.0, 0.5])
-            hit_pos = robot.stepSim(False, 50)
+            hit_pos = robot.stepSim(False, 200)
+
             if i > 50:
                 #print(len(hit_pos))
                 hit_pos = np.array(hit_pos)
-                _x = [val for val in hit_pos[:,0]]
-                _y = [val for val in hit_pos[:,1]]
+                _x = [val - robot.pos[0] for val in hit_pos[:,0]]
+                _y = [val - robot.pos[1] for val in hit_pos[:,1]]
                 x.extend(_x)
                 y.extend(_y)
         client.stepSimulation()
