@@ -1,64 +1,58 @@
-import time
-from threading import Thread, Lock
+# -*- coding: utf-8 -*-
+import os
+import inspect
+from time import sleep
+currentdir = os.path.dirname(os.path.abspath(inspect.getfile(inspect.currentframe())))
+parentdir = os.path.dirname(os.path.dirname(currentdir))
+os.sys.path.insert(0, parentdir)
+import random
 
 import pybullet as pb
-import pybullet_data
-
+import pybullet_data as pbd
+from pybullet_utils import bullet_client
 from racecar_controller import RacecarController
-from bullet_client import BulletClient
-from mouse_events import MouseEvents
+additional_path = pbd.getDataPath()
 
-draw_ray = False  #support only one robot to draw rays
-draw_ray_step = 3
+timeStep = 1./60.
+space = 2
+offsetY = space
+matrix = [3,2]
 
-car_num = 5
-sim_step = 1. / 500.
-display_step = 1. / 50
-pos_step = 2.5
-
-# mouse_event = MouseEvents(pb)
-additional_path = pybullet_data.getDataPath()
-
-def multiThreadSimStep(car, i):
-    while True:
-        car.stepSim(draw_ray, draw_ray_step)
-        time.sleep(display_step)
-
-def main():
-    clients = []
-    cars = []
-    thrs = []
+def setObstacles(number):
+    for i in range(number):
+        position = [random.randint(-5, 5), random.randint(-5, 5), 0]
+        obstacle_id  = pb.createCollisionShape(pb.GEOM_CYLINDER,radius=0.2,height=0.5) \
+            if random.random() > 0.5 else \
+            pb.createCollisionShape(pb.GEOM_BOX,halfExtents=[0.4, 0.4, 0.5])
+        pb.createMultiBody(baseMass=9999,baseCollisionShapeIndex=obstacle_id, basePosition=position)
     
-    guiServer = BulletClient(pb.GUI_SERVER)
-    guiServer.setPhysicsEngineParameter(numSolverIterations = 8, minimumSolverIslandSize = 100)
-    guiServer.configureDebugVisualizer(pb.COV_ENABLE_RENDERING, 0)
-    # guiServer.configureDebugVisualizer(pb.COV_ENABLE_MOUSE_PICKING, 1)
-
-    guiServer.setAdditionalSearchPath(additional_path)
-    guiServer.loadURDF('plane.urdf')
-    guiServer.loadURDF('r2d2.urdf', [1, 0, 0])
-    guiServer.setGravity(0, 0, -10)
-    for i in range(car_num):
-        pos = [0, (i - car_num / 2) * pos_step, .2]
-        clients.append(BulletClient(pb.SHARED_MEMORY))
-        clients[-1].setAdditionalSearchPath(additional_path)
-        cars.append(RacecarController(clients[-1], additional_path, start_pos = pos))
-        cars[-1].apply_action([0.1 * i + 1.0, 0.8])
-        thrs.append(Thread(target = multiThreadSimStep, args = (cars[-1], i)))
-        thrs[-1].start()
-        print(i,"th car is ready...")
-    guiServer.configureDebugVisualizer(pb.COV_ENABLE_RENDERING, 1)
-    while True:
-        guiServer.stepSimulation()
-        time.sleep(sim_step)
-
-    for t in thrs:
-        t.join()
+if __name__ == "__main__":
+    client = bullet_client.BulletClient(pb.GUI)
+    client.setTimeStep(timeStep)
+    client.setPhysicsEngineParameter(numSolverIterations=8)
+    client.setPhysicsEngineParameter(minimumSolverIslandSize=100)
+    client.configureDebugVisualizer(client.COV_ENABLE_RENDERING,0)
+    client.setAdditionalSearchPath(pbd.getDataPath())
+    client.loadURDF('plane.urdf')
+    setObstacles(10)
+    client.setGravity(0,0,-9.8)
+    robots = []
+    for j in range (matrix[1]):
+        offsetX = 0
+        for i in range(matrix[0]):
+            offset=[offsetX,offsetY,0.5]
+            #sim = client.loadURDF('racecar/racecar.urdf', offset)
+            sim = RacecarController(client, additional_path, offset, [0, 0, 0])
+            robots.append(sim)
+            offsetX += space 
+        offsetY += space 
     
+    client.configureDebugVisualizer(client.COV_ENABLE_RENDERING,1)
 
-
-if __name__ == '__main__':
-    main()
-
-
-
+    for i in range (200):
+        for robot in robots:
+            if type(robot) == type(0):
+                break
+            robot.stepSim(False, 50)
+        client.stepSimulation()
+        sleep(0.01)

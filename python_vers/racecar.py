@@ -1,10 +1,4 @@
 import os
-import copy
-import math
-from threading import Lock
-
-import numpy as np
-from sensor_rays import BatchRay
 
 class Racecar(object):
 

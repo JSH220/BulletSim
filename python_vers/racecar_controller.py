@@ -1,8 +1,4 @@
-import os
 import math
-from threading import Lock
-
-import numpy as np
 from sensor_rays import BatchRay
 from racecar import Racecar
 
@@ -21,7 +17,6 @@ class RacecarController(Racecar):
     
     super().__init__(bullet_client, urdfRootPath, start_pos, start_ori)
     
-    self._lock = Lock()
     self._pos = start_pos
     self._ori = start_ori
 
@@ -82,15 +77,16 @@ class RacecarController(Racecar):
       'steeringMultiplier should between 0 and ' + str(self._steeringMultiplierUpperbound)
     self._steeringMultiplier = stm
 
-  def stepSim(self, drawRays = False, drawStep = 5, robotId = 0):
+  def stepSim(self, drawRays = False, drawStep = 5):
     assert isinstance(drawRays, bool), \
       "drawRays should be boolen type"
     self._pos, self._orient = self._p.getBasePositionAndOrientation(self._carId)
     self._rays.rayPos = [self._pos[0], self._pos[1], 0.3]
-    self._rays.scan_env()
+    hit_pos = self._rays.scan_env()
     # don't support multi-robot until now
     if drawRays:
         self._rays.draw_debug(drawStep)
+    return hit_pos
         
   def apply_action(self, motorCommands):
       targetVelocity = motorCommands[0] * self._speedMultiplier

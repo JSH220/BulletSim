@@ -57,6 +57,7 @@ class BatchRay(SensorI):
     def scan_env(self):
         self.__results = self.__pb_client.rayTestBatch(self.__ray_from, self.__ray_to)
         self.__hit_pos = [r[3] for r in self.__results if r[0] >= 0]
+        return self.__hit_pos
 
     # don't support multi-robot until now
     def draw_debug(self, drawStep):
