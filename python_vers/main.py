@@ -46,16 +46,20 @@ class RobotManager():
         self.robots_addr = {}
         self.robots = {}
         
-        self.socket_dict['message'] = socket.socket(socket.AF_INET,socket.SOCK_DGRAM)
-        self.socket_dict['message'].bind(("", 10006))
+        self.socket_dict['sim'] = socket.socket(socket.AF_INET,socket.SOCK_DGRAM)
+        self.socket_dict['sim'].bind(("", 10007))
         self.message_recv_thread = threading.Thread(
                 target=self.message_recv, args=()
             )
         self.message_recv_thread.start()
     
-    def encode_message(self, data, robot_id, mtype='normal', pri=5):
+    def encode_message(self, data, robot_id=0, mtype='sim', pri=5):
         data = {'Mtype':mtype, 'Pri':pri, 'Id':robot_id, 'Data':data}
-        data = json.dumps(data).encode()
+        try:
+            data = json.dumps(data).encode()
+        except:
+            print('Error', type(data['Data']), data, data['Data'])
+            return "".encode()
         return data
 
     def send_simple_package(self, data, socket, address, debug=False):
@@ -64,13 +68,13 @@ class RobotManager():
             print('Simple send', data)
         return ret
 
-    def send_message(self, data, address, mtype='normal', pri=5, debug=False):
-        data = self.encode_message(data, self.robot_id, mtype, pri)
-        self.send_simple_package(data, self.socket_dict['message'], address, debug=debug)
+    def send_message(self, data, address, mtype='sim', pri=5, debug=False):
+        data = self.encode_message(data=data, robot_id=0, mtype=mtype, pri=pri)
+        self.send_simple_package(data, self.socket_dict['sim'], address, debug=debug)
         
     def message_recv(self):
         while True:
-            data,addr = self.socket_dict['message'].recvfrom(65535)
+            data,addr = self.socket_dict['sim'].recvfrom(65535)
             json_data = json.loads(data.decode('utf-8'))
             self.parse_message(json_data, addr)
             
@@ -81,17 +85,20 @@ class RobotManager():
         data = message['Data']
         if message_type == 'register':
             if robot_id in self.robots.keys():
-                print('re-register', robot_id)
+                print('re-register robot', robot_id)
+            else:
+                print('register robot', robot_id)
             self.robots_cmd[robot_id] = [0, 0]
             self.robots_addr[robot_id] = addr
             
             position = [random.randint(-5, 5), random.randint(-5, 5), 0.5]
             robot = RacecarController(client, additional_path, timeStep, position, [0, 0, 0])
             self.robots[robot_id] = robot
+            data = str(addr[0])+":"+str(addr[1])
+            self.send_message(data, addr)
     
         elif message_type == 'cmd':
-            print(data)
-            self.robots_cmd[robot_id]
+            self.robots_cmd[robot_id] = [data['v'], data['w']]
         else:
             print('Error:',message)
             
@@ -109,11 +116,6 @@ if __name__ == "__main__":
     x = []
     y = []
     manager = RobotManager()
-    """
-    position = [random.randint(-5, 5), random.randint(-5, 5), 0.5]
-    robot = RacecarController(client, additional_path, timeStep, position, [0, 0, 0])
-    robots.append(robot)
-    """
     
     client.configureDebugVisualizer(client.COV_ENABLE_RENDERING,1)
     
@@ -124,7 +126,7 @@ if __name__ == "__main__":
         for robot_id in list(manager.robots.keys()):
             #print('robot:',manager.robots.keys())
             robot = manager.robots[robot_id]
-            actions = [1.0, 0.5]#manager.robots_cmd[robot_id]
+            actions = manager.robots_cmd[robot_id]
             robot.apply_action(actions)
             hit_pos = robot.stepSim(False, 200)
 
