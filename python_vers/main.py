@@ -130,7 +130,7 @@ if __name__ == "__main__":
             robot.apply_action(actions)
             hit_pos = robot.stepSim(False, 200)
 
-            if i > 50:
+            if len(hit_pos) != 0:
                 #print(len(hit_pos))
                 yaw = robot.orient[2]
 
@@ -140,16 +140,17 @@ if __name__ == "__main__":
 
                 x_ = _x*np.cos(yaw) - _y*np.sin(yaw)
                 y_ = _x*np.sin(yaw) + _y*np.cos(yaw)
-                x.extend(list(x_))
-                y.extend(list(y_))
+                #x.extend(list(x_))
+                #y.extend(list(y_))
+                manager.send_message({'x':list(x_), 'y':list(y_)}, manager.robots_addr[robot_id])
 
         client.stepSimulation()
         #sleep(0.01)
     print('Finish !')
     #x.extend(list(x_))
     #y.extend(list(y_))
-    plt.figure(num=1, figsize=(5, 5))
-    plt.xlim((-3, 3))
-    plt.ylim((-3, 3))
-    plt.scatter(x, y, s=1, alpha=0.6)
-    plt.show()
+    #plt.figure(num=1, figsize=(5, 5))
+    #plt.xlim((-3, 3))
+    #plt.ylim((-3, 3))
+    #plt.scatter(x, y, s=1, alpha=0.6)
+    #plt.show()

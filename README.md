@@ -20,8 +20,11 @@ bash test.bash
 
 ## Others
 * Robot and its coordinate
+
 ![robot](./img/coordinate.png)
+
 * Running demo
+
 ![demo](./img/demo.png)
 
 ## TODO
