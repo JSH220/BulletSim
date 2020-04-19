@@ -47,6 +47,9 @@ class RacecarController(Racecar):
   def orient(self):
     return self._p.getEulerFromQuaternion(self._ori)
 
+  """
+  DON'T USE
+  """
   @property
   def yaw_rate(self):
     return self._yaw_rate
