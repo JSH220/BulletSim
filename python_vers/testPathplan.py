@@ -19,7 +19,7 @@ timeStep = 1./30.
 space = 2
 offsetY = space
 matrix = [1,1]
-obj_pos = []
+obst_pos = []
 goal = None
 
 def setObstacles(number):
@@ -30,8 +30,8 @@ def setObstacles(number):
     pb.createMultiBody(baseMass=9999,baseCollisionShapeIndex=obstacle_id, basePosition=position)
     for _ in range(number):
         position = [random.randint(-500, 500)/100.0, random.randint(-500, 500)/100.0, 0]
-        obj_pos.append(position[0:2])
-        #obj_pos.append([9999, 9999])
+        obst_pos.append(position[0:2])
+        #obst_pos.append([9999, 9999])
         obstacle_id  = pb.createCollisionShape(pb.GEOM_CYLINDER,radius=0.05,height=0.1) #\
             # if random.random() > 0.5 else \
             # pb.createCollisionShape(pb.GEOM_BOX,halfExtents=[0.4, 0.4, 0.5])
@@ -54,20 +54,20 @@ if __name__ == "__main__":
     for j in range (matrix[1]):
         offsetX = 0
         for i in range(matrix[0]):
-            offset = [offsetX,offsetY, 0.1]
-            sim = RacecarController(client, additional_path, timeStep, offset, [0, 0, 0])
+            offset = [offsetX,offsetY]
+            sim = RacecarController(client, additional_path, timeStep, offset, 0, goal, obst_pos)
             robots.append(sim)
             offsetX += space 
         offsetY += space 
     
     client.configureDebugVisualizer(client.COV_ENABLE_RENDERING,1)
-    dwaController = DynamicWindowApproach(goal, [0, 0], 0, np.array(obj_pos), 0, 0)
+    # dwaController = DynamicWindowApproach(goal, [0, 0], 0, np.array(obst_pos), 0, 0)
     last_ori = 0.0
     for i in range (20000):
         for robot in robots:
-            dwaController.update_state(goal, list(robot.pos)[0:2], robot.orient[2], np.array(obj_pos), robot.vel, robot.yaw_rate)
-            u, traj = dwaController.dwa_control()
-            robot.apply_action(u)
+            # dwaController.update_state(goal, list(robot.pos)[0:2], robot.orient[2], np.array(obst_pos), robot.vel, robot.yaw_rate)
+            # u, traj = dwaController.dwa_control()
+            # robot.apply_action(u)
             robot.stepSim(False, 50)
         client.stepSimulation()
         # sleep(timeStep)

@@ -91,8 +91,8 @@ class RobotManager():
             self.robots_cmd[robot_id] = [0, 0]
             self.robots_addr[robot_id] = addr
             
-            position = [random.randint(-5, 5), random.randint(-5, 5), 0.5]
-            robot = RacecarController(client, additional_path, timeStep, position, [0, 0, 0])
+            position = [random.randint(-5, 5), random.randint(-5, 5)]
+            robot = RacecarController(client, additional_path, timeStep, position, 0)
             self.robots[robot_id] = robot
             data = str(addr[0])+":"+str(addr[1])
             self.send_message(data, addr)

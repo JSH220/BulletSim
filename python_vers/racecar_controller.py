@@ -1,28 +1,32 @@
 import math
-from sensor_rays import BatchRay
-from racecar import Racecar
 import numpy as np
+
+from racecar import Racecar
+from sensor_rays import BatchRay
+from dynamic_window_approach import DynamicWindowApproach
+
 
 class RacecarController(Racecar):
 
-  def __init__(self, bullet_client, urdfRootPath, time_step, start_pos = [0, 0, .2], start_ori = [0, 0, 0]):
+  def __init__(self, bullet_client, urdfRootPath, time_step, start_pos = [0, 0], start_ori = 0, goal = [0, 0, 0], obst_pos = []):
     assert isinstance(start_pos, (list, tuple)), \
       "Type Error: start pos should be a list or typle..."
-    assert len(start_pos) == 3, \
-      "Size Error: start pos should be 3 demension..."
+    assert len(start_pos) == 2, \
+      "Size Error: start pos should be 2 demension..."
     
-    assert isinstance(start_ori, (list, tuple)), \
-      "Type Error: start orientation should be a list or typle..."
-    assert len(start_ori) == 3, \
-      "Size Error: start orientation should be 3 demension..."
+    assert isinstance(start_ori, (float, int)), \
+      "Type Error: start orientation should be a float or int..."
     
-    super().__init__(bullet_client, urdfRootPath, start_pos, start_ori)
+    super().__init__(bullet_client, urdfRootPath, start_pos + [0.1,], [0, 0, start_ori])
     
     self._pos = start_pos
     self._vel = 0
-    self._ori = self._p.getQuaternionFromEuler(start_ori)
+    self._ori = start_ori
     self._yaw_rate = 0
     self._time_step = time_step
+    
+    self._goal = goal
+    self._obst_pos = obst_pos
 
     self._maxForceUpperbound = 100
     self._speedMultiplierUpperbound = 100
@@ -36,73 +40,51 @@ class RacecarController(Racecar):
     self._steering_links = [0, 2]
     self._num_motors = 2
     self._motorized_wheels = [8, 15]
-    self._sensor_pos = [self._pos[0], self._pos[1], 0.3]
+    self._sensor_pos = self._pos + [0.3,]
     self._rays = BatchRay(self._p, self._sensor_pos, 8, 512)
-
-  @property
-  def actionDimension(self):
-    return self._num_motors
+    self._dwa_controller = DynamicWindowApproach(goal, start_pos, start_ori, np.array(obst_pos), self._vel, self._yaw_rate)
+    self._dwa_traj_predict = []
 
   @property
   def orient(self):
-    return self._p.getEulerFromQuaternion(self._ori)
+    return self._ori
 
   @property
   def time_step(self):
     return self._time_step
-  """
-  JUST USE IT!!!
-  """
-  @property
-  def yaw_rate(self):
-    return self._yaw_rate
 
   @property
   def pos(self):
     return self._pos
+
+  @property
+  def goal(self):
+    return self._goal
   
-  @property
-  def vel(self):
-    return self._vel
+  @goal.setter
+  def goal(self, goal):
+    assert isinstance(goal, list), \
+      "goal should be a list......"
+    assert len(goal) == 2, \
+      "goal should be 2 dimension......"
+    self._goal = goal
 
-  @property
-  def maxForce(self):
-    return self._maxForce
-
-  @maxForce.setter
-  def maxForce(self, mf):
-    assert mf > 0 and mf < self._maxForceUpperbound, \
-      'maxForce should between 0 and ' + str(self._maxForceUpperbound)
-    self._maxForce = mf
-
-  @property
-  def speedMultiplier(self):
-    return self._speedMultiplier
-
-  @speedMultiplier.setter
-  def speedMultiplier(self, sm):
-    assert sm > 0 and sm < self._speedMultiplierUpperbound, \
-      'speedMultiplier should between 0 and ' + str(self._speedMultiplierUpperbound)
-    self._speedMultiplier = sm
-
-  @property
-  def steeringMultiplier(self):
-    return self._steeringMultiplier
-
-  @steeringMultiplier.setter
-  def steeringMultiplier(self, stm):
-    assert stm > 0 and stm < self._steeringMultiplierUpperbound, \
-      'steeringMultiplier should between 0 and ' + str(self._steeringMultiplierUpperbound)
-    self._steeringMultiplier = stm
+  
+  def set_obstacle_pos(self, obst_pos):
+    self._obst_pos = obst_pos
 
   def stepSim(self, drawRays = False, drawStep = 5):
     assert isinstance(drawRays, bool), \
       "drawRays should be boolen type"
     pos, ori = self._p.getBasePositionAndOrientation(self._carId)
-    self._pos, self._vel = pos, np.linalg.norm((np.array(pos) - np.array(self._pos))) / self._time_step
-    self._ori, self._yaw_rate = ori, (ori[2] - self._ori[2]) / self._time_step
-    self._rays.set_sensor_pos([self._pos[0], self._pos[1], 0.3])
+    self._pos, vel = list(pos)[0:2], np.linalg.norm((np.array(pos[0:2]) - np.array(self._pos))) / self._time_step
+    ori = self._p.getEulerFromQuaternion(ori)[2]
+    self._ori, yaw_rate = ori, (ori - self._ori) / self._time_step
+    self._rays.set_sensor_pos(self._pos + [0.3,])
     hit_pos = self._rays.scan_env()
+    self._dwa_controller.update_state(self._goal, self._pos, self._ori, np.array(self._obst_pos), vel, yaw_rate)
+    u, self._dwa_traj_predict = self._dwa_controller.dwa_control()
+    self.apply_action(u)
     # don't support multi-robot until now
     if drawRays:
         self._rays.draw_debug(drawStep)
@@ -145,13 +127,10 @@ if __name__ == '__main__':
     pb.setTimeStep(car.time_step)
     pb.stepSimulation()
     car.stepSim(True,drawStep = 5)
-    print("actionDimension: ", car.maxForce)
     print("pos: ", car.pos)
     print("orient: ", car.orient)
-    print("maxForce: ", car.maxForce)
-    print("speedMultiplier: ", car.speedMultiplier)
-    print("steeringMultiplier: ", car.steeringMultiplier)
-    print("vel:", car.vel)
+
+
     car.maxForce = 20
     # car.maxForce = 150
     car.speedMultiplier = 80.
