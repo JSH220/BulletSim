@@ -48,10 +48,10 @@ class Config:
         self.max_yawrate = 90.0 * math.pi / 180.0  # [rad/s]
         self.max_accel = 0.5  # [m/ss]
         self.max_dyawrate = 90.0 * math.pi / 180.0  # [rad/ss]
-        self.v_reso = 0.2  # [m/s]
-        self.yawrate_reso = 1.0 * math.pi / 180.0  # [rad/s]
+        self.v_reso = 0.1  # [m/s]
+        self.yawrate_reso = 15.0 * math.pi / 180.0  # [rad/s]
         self.dt = 0.2  # [s] Time tick for motion prediction
-        self.predict_time = 2.0  # [s]
+        self.predict_time = 1.0  # [s]
         self.to_goal_cost_gain = 0.15
         self.speed_cost_gain = 1.5
         self.obstacle_cost_gain = 1.0

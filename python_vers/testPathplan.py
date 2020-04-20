@@ -70,7 +70,8 @@ if __name__ == "__main__":
             state = [robot.pos[0], robot.pos[1], robot.orient[2], robot.vel, robot.yaw_rate]
             u, traj = dwa_control(state, config, goal, np.array(obj_pos))
             #print(len(traj))
-            # print(u)
+            print(u)
+            # u[0] = 0.8
             robot.apply_action(u)
 
             robot.stepSim(False, 50)
