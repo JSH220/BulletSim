@@ -1,43 +1,31 @@
-"""
-
-Mobile robot motion planning sample with Dynamic Window Approach
-
-author: Atsushi Sakai (@Atsushi_twi), Göktuğ Karakaşlı
-
-"""
-
 import math
 
 import matplotlib.pyplot as plt
 import numpy as np
 
 
-
 class Config:
-    """
-    simulation parameter class
-    """
+
     def __init__(self):
         # robot parameter
         self.max_speed = 1.0  # [m/s]
         self.min_speed = 0.0  # [m/s]
         self.max_yawrate = 90.0 * math.pi / 180.0  # [rad/s]
         self.max_accel = 0.5  # [m/ss]
-        self.max_dyawrate = 90.0 * math.pi / 180.0  # [rad/ss]
+        self.max_dyawrate = math.pi # [rad/ss]
         self.v_reso = 0.1  # [m/s]
         self.yawrate_reso = 15.0 * math.pi / 180.0  # [rad/s]
-        self.predict_time = 1.0  # [s]
-        self.to_goal_cost_gain = 0.3
+        self.predict_time = 1.2  # [s]
+        self.to_goal_cost_gain = 0.15
         self.speed_cost_gain = 1.5
-        self.obstacle_cost_gain = 1.0
+        self.obstacle_cost_gain = 1.3
 
-        # if robot_type == RobotType.rectangle
         self.robot_width = 0.3+0.05  # [m] for collision check
         self.robot_length = 0.5+0.05  # [m] for collision check
 
 class DynamicWindowApproach(object):
     
-    def __init__(self, goal, pos, angle, obst, vel_mod = 0, yaw_rate = 0, time_step = 0.2):
+    def __init__(self, goal, pos, angle, obst, vel_mod = 0, yaw_rate = 0):
         self._config = Config()
         self._goal = goal
         self._pos = pos
@@ -45,7 +33,7 @@ class DynamicWindowApproach(object):
         self._vel_mod = vel_mod
         self._yaw_rate = yaw_rate
         self._obst = obst
-        self._time_step = time_step
+        self._time_step = 0.2
         self._state_vec = self._pos + [self._angle, self._vel_mod, self._yaw_rate]
 
     def dwa_control(self):
@@ -82,11 +70,6 @@ class DynamicWindowApproach(object):
         x[4] = u[1]
         return x
 
-    # x[0]: px
-    # x[1]: py
-    # x[2]: angle
-    # x[3]: v
-    # x[4]: yaw_rate
     def predict_trajectory(self, v, y):
 
         x = np.array(self._state_vec[:])

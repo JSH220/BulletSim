@@ -54,7 +54,7 @@ if __name__ == "__main__":
     for j in range (matrix[1]):
         offsetX = 0
         for i in range(matrix[0]):
-            offset=[offsetX,offsetY,0.1]
+            offset = [offsetX,offsetY, 0.1]
             #sim = client.loadURDF('racecar/racecar.urdf', offset)
             sim = RacecarController(client, additional_path, timeStep, offset, [0, 0, 0])
             robots.append(sim)
