@@ -5,13 +5,6 @@ from racecar import Racecar
 from sensor_rays import BatchRay
 from dynamic_window_approach import DynamicWindowApproach
 
-def local2global(pos, angle):
-  # angle_convert = math.atan2(pos[1], pos[0]) + angle
-  # length = np.linalg.norm(np.array(pos))
-  # pos_global = [length * math.cos(angle_convert), length * math.sin(angle_convert)]
-  return pos[0:2]
-
-
 class RacecarController(Racecar):
 
   def __init__(self, bullet_client, urdfRootPath, time_step, start_pos = [0, 0], start_ori = 0, goal = [0, 0, 0]):
@@ -135,12 +128,5 @@ if __name__ == '__main__':
     print("pos: ", car.pos)
     print("orient: ", car.orient)
 
-
-    car.maxForce = 20
-    # car.maxForce = 150
-    car.speedMultiplier = 80.
-    # car.speedMultiplier = -50
-    car.steeringMultiplier = 1.
-    # car.steeringMultiplier = 3.
     time.sleep(time_step)
   p.disconnect()
