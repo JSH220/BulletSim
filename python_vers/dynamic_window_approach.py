@@ -16,12 +16,12 @@ class Config:
         self.v_reso = 0.1  # [m/s]
         self.yawrate_reso = 15.0 * math.pi / 180.0  # [rad/s]
         self.predict_time = 1.2  # [s]
-        self.to_goal_cost_gain = 0.15
+        self.to_goal_cost_gain = 0.1
         self.speed_cost_gain = 1.5
         self.obstacle_cost_gain = 1.3
 
-        self.robot_width = 0.3+0.05  # [m] for collision check
-        self.robot_length = 0.5+0.05  # [m] for collision check
+        self.robot_width = 0.4  # [m] for collision check
+        self.robot_length = 0.7  # [m] for collision check
 
 class DynamicWindowApproach(object):
     
@@ -118,6 +118,9 @@ class DynamicWindowApproach(object):
 
 
     def calc_obstacle_cost(self, trajectory):
+
+        if not len(self._obst):
+            return 0
 
         ox = self._obst[:, 0]
         oy = self._obst[:, 1]

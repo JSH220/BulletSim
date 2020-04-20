@@ -20,19 +20,19 @@ space = 2
 offsetY = space
 matrix = [1,1]
 obst_pos = []
-goal = None
+goal = [6.0, 6.0, 0]
 
 def setObstacles(number):
     global goal
-    position = [random.randint(-500, 500)/100.0, random.randint(-500, 500)/100.0, 0]
-    goal = position
-    obstacle_id  = pb.createCollisionShape(pb.GEOM_CYLINDER,radius=0.2,height=0.3)
-    pb.createMultiBody(baseMass=9999,baseCollisionShapeIndex=obstacle_id, basePosition=position)
+    # position = [random.randint(-500, 500)/100.0, random.randint(-500, 500)/100.0, 0]
+    # goal = position
+    obstacle_id  = pb.createCollisionShape(pb.GEOM_CYLINDER,radius=0.05,height=0.5)
+    pb.createMultiBody(baseMass=9999,baseCollisionShapeIndex=obstacle_id, basePosition=goal)
     for _ in range(number):
-        position = [random.randint(-500, 500)/100.0, random.randint(-500, 500)/100.0, 0]
+        position = [random.randint(0, 600)/100.0, random.randint(0, 600)/100.0, 0]
         obst_pos.append(position[0:2])
         #obst_pos.append([9999, 9999])
-        obstacle_id  = pb.createCollisionShape(pb.GEOM_CYLINDER,radius=0.05,height=0.1) #\
+        obstacle_id  = pb.createCollisionShape(pb.GEOM_CYLINDER,radius=0.1,height=0.3) #\
             # if random.random() > 0.5 else \
             # pb.createCollisionShape(pb.GEOM_BOX,halfExtents=[0.4, 0.4, 0.5])
         pb.createMultiBody(baseMass=9999,baseCollisionShapeIndex=obstacle_id, basePosition=position)
@@ -47,27 +47,23 @@ if __name__ == "__main__":
     client.setAdditionalSearchPath(pbd.getDataPath())
     client.loadURDF('plane.urdf')
 
-    setObstacles(20)
+    setObstacles(10)
     client.setGravity(0,0,-9.8)
     robots = []
 
     for j in range (matrix[1]):
         offsetX = 0
         for i in range(matrix[0]):
-            offset = [offsetX,offsetY]
-            sim = RacecarController(client, additional_path, timeStep, offset, 0, goal, obst_pos)
+            offset = [offsetX, offsetY]
+            sim = RacecarController(client, additional_path, timeStep, offset, 0, goal)
             robots.append(sim)
             offsetX += space 
         offsetY += space 
     
     client.configureDebugVisualizer(client.COV_ENABLE_RENDERING,1)
-    # dwaController = DynamicWindowApproach(goal, [0, 0], 0, np.array(obst_pos), 0, 0)
     last_ori = 0.0
     for i in range (20000):
         for robot in robots:
-            # dwaController.update_state(goal, list(robot.pos)[0:2], robot.orient[2], np.array(obst_pos), robot.vel, robot.yaw_rate)
-            # u, traj = dwaController.dwa_control()
-            # robot.apply_action(u)
-            robot.stepSim(False, 50)
+            robot.stepSim(True, 5)
         client.stepSimulation()
         # sleep(timeStep)

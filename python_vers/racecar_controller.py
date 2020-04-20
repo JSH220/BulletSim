@@ -5,6 +5,12 @@ from racecar import Racecar
 from sensor_rays import BatchRay
 from dynamic_window_approach import DynamicWindowApproach
 
+def local2global(pos, angle):
+  # angle_convert = math.atan2(pos[1], pos[0]) + angle
+  # length = np.linalg.norm(np.array(pos))
+  # pos_global = [length * math.cos(angle_convert), length * math.sin(angle_convert)]
+  return pos[0:2]
+
 
 class RacecarController(Racecar):
 
@@ -40,9 +46,10 @@ class RacecarController(Racecar):
     self._steering_links = [0, 2]
     self._num_motors = 2
     self._motorized_wheels = [8, 15]
-    self._sensor_pos = self._pos + [0.3,]
-    self._rays = BatchRay(self._p, self._sensor_pos, 8, 512)
+    self._sensor_pos = self._pos + [0.05,]
+    self._rays = BatchRay(self._p, self._sensor_pos, 8, 1024)
     self._dwa_controller = DynamicWindowApproach(goal, start_pos, start_ori, np.array(obst_pos), self._vel, self._yaw_rate)
+    self._detect_dist = 0.8
     self._dwa_traj_predict = []
 
   @property
@@ -81,10 +88,14 @@ class RacecarController(Racecar):
     ori = self._p.getEulerFromQuaternion(ori)[2]
     self._ori, yaw_rate = ori, (ori - self._ori) / self._time_step
     self._rays.set_sensor_pos(self._pos + [0.3,])
+
     hit_pos = self._rays.scan_env()
+    hit_pos = [p for p in hit_pos if np.linalg.norm(np.array(p[0:2]) - np.array(self._pos)) < self._detect_dist]
+    self._obst_pos = [local2global(x, self._ori) for x in hit_pos]
     self._dwa_controller.update_state(self._goal, self._pos, self._ori, np.array(self._obst_pos), vel, yaw_rate)
     u, self._dwa_traj_predict = self._dwa_controller.dwa_control()
     self.apply_action(u)
+
     # don't support multi-robot until now
     if drawRays:
         self._rays.draw_debug(drawStep)
