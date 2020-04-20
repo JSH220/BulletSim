@@ -29,5 +29,4 @@ bash test.bash
 
 ## TODO
 - [ ] route plan
-- [ ] motion control
 - [ ] multi-agent collaboration
