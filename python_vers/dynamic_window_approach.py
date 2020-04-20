@@ -36,6 +36,15 @@ class DynamicWindowApproach(object):
         self._time_step = 0.2
         self._state_vec = self._pos + [self._angle, self._vel_mod, self._yaw_rate]
 
+    def update_state(self, goal, pos, angle, obst, vel_mod, yaw_rate):
+        self._goal = goal
+        self._pos = pos
+        self._angle = angle
+        self._vel_mod = vel_mod
+        self._yaw_rate = yaw_rate
+        self._obst = obst
+        self._state_vec = self._pos + [self._angle, self._vel_mod, self._yaw_rate]
+
     def dwa_control(self):
 
         dw = self.calc_dynamic_window()

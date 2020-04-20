@@ -55,21 +55,18 @@ if __name__ == "__main__":
         offsetX = 0
         for i in range(matrix[0]):
             offset = [offsetX,offsetY, 0.1]
-            #sim = client.loadURDF('racecar/racecar.urdf', offset)
             sim = RacecarController(client, additional_path, timeStep, offset, [0, 0, 0])
             robots.append(sim)
             offsetX += space 
         offsetY += space 
     
     client.configureDebugVisualizer(client.COV_ENABLE_RENDERING,1)
+    dwaController = DynamicWindowApproach(goal, [0, 0], 0, np.array(obj_pos), 0, 0)
     last_ori = 0.0
     for i in range (20000):
         for robot in robots:
-            dwa = DynamicWindowApproach(goal, list(robot.pos)[0:2], robot.orient[2], np.array(obj_pos), robot.vel, robot.yaw_rate)
-            # state = [robot.pos[0], robot.pos[1], robot.orient[2], robot.vel, robot.yaw_rate]
-            # u, traj = dwa_control(state, config, goal, np.array(obj_pos))
-            u, traj = dwa.dwa_control()
-            # print(u)
+            dwaController.update_state(goal, list(robot.pos)[0:2], robot.orient[2], np.array(obj_pos), robot.vel, robot.yaw_rate)
+            u, traj = dwaController.dwa_control()
             robot.apply_action(u)
             robot.stepSim(False, 50)
         client.stepSimulation()
