@@ -43,10 +43,10 @@ class Config:
 
     def __init__(self):
         # robot parameter
-        self.max_speed = 3.0  # [m/s]
+        self.max_speed = 1.0  # [m/s]
         self.min_speed = 0.0  # [m/s]
         self.max_yawrate = 90.0 * math.pi / 180.0  # [rad/s]
-        self.max_accel = 1.0  # [m/ss]
+        self.max_accel = 0.5  # [m/ss]
         self.max_dyawrate = 90.0 * math.pi / 180.0  # [rad/ss]
         self.v_reso = 0.2  # [m/s]
         self.yawrate_reso = 1.0 * math.pi / 180.0  # [rad/s]
@@ -55,15 +55,15 @@ class Config:
         self.to_goal_cost_gain = 0.15
         self.speed_cost_gain = 1.5
         self.obstacle_cost_gain = 1.0
-        self.robot_type = RobotType.rectangle
+        self._robot_type = RobotType.rectangle
 
         # if robot_type == RobotType.circle
         # Also used to check if goal is reached in both types
-        self.robot_radius = 0.5+0.1  # [m] for collision check
+        self.robot_radius = 0.5+1.  # [m] for collision check
 
         # if robot_type == RobotType.rectangle
-        self.robot_width = 0.3+0.2  # [m] for collision check
-        self.robot_length = 0.5+0.2  # [m] for collision check
+        self.robot_width = 0.3+0.05  # [m] for collision check
+        self.robot_length = 0.5+0.05  # [m] for collision check
 
     @property
     def robot_type(self):
@@ -140,7 +140,7 @@ def calc_control_and_trajectory(x, dw, config, goal, ob):
     to_goal_cost = 0
     speed_cost = 0
     ob_cost = 0
-    #print(dw)
+    # print("dw:", dw)
     # evaluate all trajectory with sampled input in dynamic window
     for v in np.arange(dw[0], dw[1], config.v_reso):
         for y in np.arange(dw[2], dw[3], config.yawrate_reso):
@@ -159,7 +159,7 @@ def calc_control_and_trajectory(x, dw, config, goal, ob):
     # print("goal:", to_goal_cost)
     # print("speed:", speed_cost)
     # print("obst:", ob_cost)
-    #print("bestU",best_u)
+    # print("bestU %.5f" % best_u[0])
     return best_u, best_trajectory
 
 

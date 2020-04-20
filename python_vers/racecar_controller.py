@@ -1,6 +1,7 @@
 import math
 from sensor_rays import BatchRay
 from racecar import Racecar
+import numpy as np
 
 class RacecarController(Racecar):
 
@@ -21,7 +22,6 @@ class RacecarController(Racecar):
     self._vel = 0
     self._ori = self._p.getQuaternionFromEuler(start_ori)
     self._yaw_rate = 0
-    self._last_yaw = 0
     self._time_step = time_step
 
     self._maxForceUpperbound = 100
@@ -47,8 +47,11 @@ class RacecarController(Racecar):
   def orient(self):
     return self._p.getEulerFromQuaternion(self._ori)
 
+  @property
+  def time_step(self):
+    return self._time_step
   """
-  DON'T USE
+  JUST USE IT!!!
   """
   @property
   def yaw_rate(self):
@@ -95,7 +98,9 @@ class RacecarController(Racecar):
   def stepSim(self, drawRays = False, drawStep = 5):
     assert isinstance(drawRays, bool), \
       "drawRays should be boolen type"
-    self._pos, self._ori = self._p.getBasePositionAndOrientation(self._carId)
+    pos, ori = self._p.getBasePositionAndOrientation(self._carId)
+    self._pos, self._vel = pos, np.linalg.norm((np.array(pos) - np.array(self._pos))) / self._time_step
+    self._ori, self._yaw_rate = ori, (ori[2] - self._ori[2]) / self._time_step
     self._rays.set_sensor_pos([self._pos[0], self._pos[1], 0.3])
     hit_pos = self._rays.scan_env()
     # don't support multi-robot until now
@@ -104,15 +109,14 @@ class RacecarController(Racecar):
     return hit_pos
         
   def apply_action(self, motorCommands):
-      self._vel = motorCommands[0] * self._speedMultiplier
+      vel = motorCommands[0] * self._speedMultiplier
       steeringAngle = motorCommands[1] * self._steeringMultiplier
-      self._yaw_rate, self._last_yaw = (steeringAngle - self._last_yaw) / self._time_step, steeringAngle
 
       for motor in self._motorized_wheels:
         self._p.setJointMotorControl2(self._carId,
                                       motor,
                                       self._p.VELOCITY_CONTROL,
-                                      targetVelocity=self._vel,
+                                      targetVelocity=vel,
                                       force=self._maxForce)
       for steer in self._steering_links:
         self._p.setJointMotorControl2(self._carId,
@@ -124,24 +128,21 @@ class RacecarController(Racecar):
 if __name__ == '__main__':
   import pybullet as pb
   import pybullet_data
-  from bullet_client import BulletClient
+  from pybullet_utils import bullet_client
   import time
-  time_step = 1./600
-  p = BulletClient(pb.GUI)
+  time_step = 1./60
+  p = bullet_client.BulletClient(pb.GUI)
   p.setAdditionalSearchPath(pybullet_data.getDataPath())
   planID = p.loadURDF('plane.urdf')
   p.setGravity(0,0,-10)
   car = RacecarController(p, pybullet_data.getDataPath(), time_step)
   vel = 0.7
-  angle = 1.0
+  angle = 0
   i = 0.7
   while True:
     i += 1
     car.apply_action([vel, angle])
-    if i > 200:
-      angle = -1.0
-    if i > 400:
-      vel = 0
+    pb.setTimeStep(car.time_step)
     pb.stepSimulation()
     car.stepSim(True,drawStep = 5)
     print("actionDimension: ", car.maxForce)
@@ -150,6 +151,7 @@ if __name__ == '__main__':
     print("maxForce: ", car.maxForce)
     print("speedMultiplier: ", car.speedMultiplier)
     print("steeringMultiplier: ", car.steeringMultiplier)
+    print("vel:", car.vel)
     car.maxForce = 20
     # car.maxForce = 150
     car.speedMultiplier = 80.

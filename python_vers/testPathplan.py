@@ -66,15 +66,11 @@ if __name__ == "__main__":
     last_ori = 0.0
     for i in range (20000):
         for robot in robots:
-            ori = robot.orient[2]
-            w = (ori - last_ori)/timeStep
-            last_ori = ori
-            #print(w,robot.yaw_rate, '\n')
-            state = [robot.pos[0], robot.pos[1], robot.orient[2], robot.vel, w]
-            #print(state, '\n')
-            # print(robot.orient)
+
+            state = [robot.pos[0], robot.pos[1], robot.orient[2], robot.vel, robot.yaw_rate]
             u, traj = dwa_control(state, config, goal, np.array(obj_pos))
             #print(len(traj))
+            # print(u)
             robot.apply_action(u)
 
             robot.stepSim(False, 50)
