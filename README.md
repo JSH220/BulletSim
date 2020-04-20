@@ -28,5 +28,5 @@ bash test.bash
 ![demo](./img/demo.png)
 
 ## TODO
-- [ ] route plan
+- [x] route plan
 - [ ] multi-agent collaboration

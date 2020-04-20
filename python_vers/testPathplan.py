@@ -62,8 +62,8 @@ if __name__ == "__main__":
     
     client.configureDebugVisualizer(client.COV_ENABLE_RENDERING,1)
     last_ori = 0.0
-    for i in range (20000):
+    while True:
         for robot in robots:
-            robot.stepSim(True, 5)
+            robot.stepSim(False, 5)
         client.stepSimulation()
         # sleep(timeStep)

@@ -99,6 +99,8 @@ class RobotManager():
     
         elif message_type == 'cmd':
             self.robots_cmd[robot_id] = [data['v'], data['w']]
+        elif message_type == 'goal':
+            self.robots[robot_id].goal = [data['x'], data['y']]
         else:
             print('Error:',message)
             
@@ -126,13 +128,13 @@ if __name__ == "__main__":
         for robot_id in list(manager.robots.keys()):
             #print('robot:',manager.robots.keys())
             robot = manager.robots[robot_id]
-            actions = manager.robots_cmd[robot_id]
-            robot.apply_action(actions)
+            #actions = manager.robots_cmd[robot_id]
+            #robot.apply_action(actions)
             hit_pos = robot.stepSim(False, 200)
 
             if len(hit_pos) != 0:
                 #print(len(hit_pos))
-                yaw = robot.orient[2]
+                yaw = robot.orient
 
                 hit_pos = np.array(hit_pos)
                 _x = np.array([val - robot.pos[0] for val in hit_pos[:,0]])
