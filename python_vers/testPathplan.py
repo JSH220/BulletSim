@@ -12,7 +12,7 @@ import pybullet as pb
 import pybullet_data as pbd
 from pybullet_utils import bullet_client
 from racecar_controller import RacecarController
-from dynamic_window_approach import dwa_control, Config
+from dynamic_window_approach import DynamicWindowApproach
 additional_path = pbd.getDataPath()
 
 timeStep = 1./30.
@@ -20,7 +20,6 @@ space = 2
 offsetY = space
 matrix = [1,1]
 obj_pos = []
-config = Config()
 goal = None
 
 def setObstacles(number):
@@ -66,14 +65,12 @@ if __name__ == "__main__":
     last_ori = 0.0
     for i in range (20000):
         for robot in robots:
-
-            state = [robot.pos[0], robot.pos[1], robot.orient[2], robot.vel, robot.yaw_rate]
-            u, traj = dwa_control(state, config, goal, np.array(obj_pos))
-            #print(len(traj))
-            print(u)
-            # u[0] = 0.8
+            dwa = DynamicWindowApproach(goal, list(robot.pos)[0:2], robot.orient[2], np.array(obj_pos), robot.vel, robot.yaw_rate)
+            # state = [robot.pos[0], robot.pos[1], robot.orient[2], robot.vel, robot.yaw_rate]
+            # u, traj = dwa_control(state, config, goal, np.array(obj_pos))
+            u, traj = dwa.dwa_control()
+            # print(u)
             robot.apply_action(u)
-
             robot.stepSim(False, 50)
         client.stepSimulation()
         # sleep(timeStep)
