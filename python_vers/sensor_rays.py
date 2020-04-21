@@ -1,5 +1,5 @@
 import math
-from sensor_interface import SensorI
+from .sensor_interface import SensorI
 
 class BatchRay(SensorI):
     def __init__(self, pybullet_client, sensor_pos = [0, 0, 0], ray_len = 25, ray_num = 1024):
