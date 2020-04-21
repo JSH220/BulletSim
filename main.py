@@ -141,7 +141,7 @@ if __name__ == "__main__":
             hit_pos = robot.stepSim(False, 200)
             if len(hit_pos) != 0:
                 manager.send_message({
-                        'goal': manager.robots[robot_id].goal,
+                        'goal': manager.robots_goal[robot_id],
                         'hit_pos': hit_pos,
                         'pos': manager.robots[robot_id].pos,
                         'ori': manager.robots[robot_id].orient,

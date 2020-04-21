@@ -9,7 +9,7 @@ if __name__ == '__main__':
     dwa_controller = DynamicWindowApproach([999., 999.], [0., 0.], 0., np.array([]), 0., 0.)
     cnt = 0
     while True:
-        if cnt % 1000 == 0:
+        if cnt % 10000 == 0:
             goal_x = 5*random.randint(-1000,1000)/1000.
             goal_y = 5*random.randint(-1000,1000)/1000.
             ifm.send_sim_goal(goal_x, goal_y)
