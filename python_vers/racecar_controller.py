@@ -103,30 +103,3 @@ class RacecarController(Racecar):
                                       steer,
                                       self._p.POSITION_CONTROL,
                                       targetPosition=steeringAngle)
-
-  
-if __name__ == '__main__':
-  import pybullet as pb
-  import pybullet_data
-  from pybullet_utils import bullet_client
-  import time
-  time_step = 1./60
-  p = bullet_client.BulletClient(pb.GUI)
-  p.setAdditionalSearchPath(pybullet_data.getDataPath())
-  planID = p.loadURDF('plane.urdf')
-  p.setGravity(0,0,-10)
-  car = RacecarController(p, pybullet_data.getDataPath(), time_step)
-  vel = 0.7
-  angle = 0
-  i = 0.7
-  while True:
-    i += 1
-    car.apply_action([vel, angle])
-    pb.setTimeStep(car.time_step)
-    pb.stepSimulation()
-    car.stepSim(True,drawStep = 5)
-    print("pos: ", car.pos)
-    print("orient: ", car.orient)
-
-    time.sleep(time_step)
-  p.disconnect()

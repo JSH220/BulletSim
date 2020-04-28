@@ -118,13 +118,23 @@ def draw_goals(goals):
         
 if __name__ == "__main__":
     client = bullet_client.BulletClient(pb.GUI)
+    
+    textureId = -1
+    pb.configureDebugVisualizer(pb.COV_ENABLE_RENDERING,0)
+    terrainShape = pb.createCollisionShape(shapeType = pb.GEOM_HEIGHTFIELD, meshScale=[0.05,0.05,16],fileName = "map.png")
+    textureId = pb.loadTexture("map.png")
+    terrain  = pb.createMultiBody(0, terrainShape)
+    pb.changeVisualShape(terrain, -1, textureUniqueId = textureId)
+    pb.changeVisualShape(terrain, -1, rgbaColor=[1,1,1,1])
+    pb.configureDebugVisualizer(pb.COV_ENABLE_RENDERING,1)
+
     client.setTimeStep(timeStep)
     client.setPhysicsEngineParameter(numSolverIterations=8)
     client.setPhysicsEngineParameter(minimumSolverIslandSize=100)
     client.configureDebugVisualizer(client.COV_ENABLE_RENDERING,1)
     client.setAdditionalSearchPath(pbd.getDataPath())
     client.loadURDF('plane.urdf')
-    setObstacles(5)
+    #setObstacles(5)
     client.setGravity(0,0,-9.8)
 
     x = []
