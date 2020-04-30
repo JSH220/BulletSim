@@ -17,7 +17,7 @@ if __name__ == '__main__':
         data = ifm.get_sim_info()
         if data != None:
             hit_pos = np.array(data['hit_pos'])
-            print(len(hit_pos))
+            #print(len(hit_pos))
             goal = data['goal']
             pos = data['pos']
             ori = data['ori']

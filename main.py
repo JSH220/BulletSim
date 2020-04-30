@@ -119,8 +119,8 @@ def draw_goals(goals):
 if __name__ == "__main__":
     client = bullet_client.BulletClient(pb.GUI)
     client.setTimeStep(timeStep)
-    client.setPhysicsEngineParameter(numSolverIterations=8)
-    client.setPhysicsEngineParameter(minimumSolverIslandSize=100)
+    #client.setPhysicsEngineParameter(numSolverIterations=8)
+    #client.setPhysicsEngineParameter(minimumSolverIslandSize=100)
     client.configureDebugVisualizer(client.COV_ENABLE_RENDERING,1)
     client.setAdditionalSearchPath(pbd.getDataPath())
     client.loadURDF('plane.urdf')
