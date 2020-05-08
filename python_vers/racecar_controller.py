@@ -25,11 +25,11 @@ class RacecarController(Racecar):
     
     self._goal = goal
 
-    self._maxForceUpperbound = 100
-    self._speedMultiplierUpperbound = 100
-    self._steeringMultiplierUpperbound = math.pi / 2
+    #self._maxForceUpperbound = 100
+    #self._speedMultiplierUpperbound = 100
+    #self._steeringMultiplierUpperbound = math.pi / 2
 
-    self._maxForce = 20
+    self._maxForce = 100
     self._speedMultiplier = 20.
     self._steeringMultiplier = 1.0
 

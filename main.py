@@ -123,9 +123,16 @@ if __name__ == "__main__":
     #client.setPhysicsEngineParameter(minimumSolverIslandSize=100)
     client.configureDebugVisualizer(client.COV_ENABLE_RENDERING,1)
     client.setAdditionalSearchPath(pbd.getDataPath())
-    client.loadURDF('plane.urdf')
+    ground = client.loadURDF('plane.urdf')
     setObstacles(5)
     client.setGravity(0,0,-9.8)
+    """
+    client.changeDynamics(ground, -1,
+                          lateralFriction=0.2,
+                          spinningFriction=0.2,
+                          rollingFriction=0.02)
+    """
+    #print(client.getDynamicsInfo(ground, -1))
 
     x = []
     y = []
